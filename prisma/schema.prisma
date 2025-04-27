@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String       @id @default(uuid())
+  externalId String       @unique
+  name       String
+  email      String       @unique
+  databases  Database[]
+  extractions Extraction[]
+}
+
+model Database {
+  id                String          @id @default(uuid())
+  name              String          @unique
+  dbNameReference   String          @unique
+  description       String?
+  dbmsType          DbmsType        @default(POSTGRESQL)
+  collections       Json?     
+  status            DatabaseStatus  @default(ACTIVE)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  userId            String
+  user              User            @relation(fields: [userId], references: [id])
+}
+
+model Extraction {
+  id              String            @id @default(uuid())
+  name            String
+  referenceTable  String            
+  status          ExtractionStatus  @default(PENDING)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  userId          String
+  user            User              @relation(fields: [userId], references: [id])
+  @@unique([userId, name], name: "userId_name")
+}
+
+enum ExtractionStatus {
+  PENDING
+  PROCESSING
+  DONE
+  ERROR
+}
+
+enum DbmsType {
+  POSTGRESQL
+  MYSQL
+  SQLSERVER
+  ORACLE
+  SQLITE
+}
+
+enum DatabaseStatus {
+  ACTIVE
+  INACTIVE
+  DELETED
+}

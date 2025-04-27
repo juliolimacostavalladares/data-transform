@@ -1,0 +1,60 @@
+services:
+  cassandra:
+    image: cassandra:latest
+    container_name: cassandra
+    environment:
+      - CASSANDRA_CLUSTER_NAME=PropertyCluster
+      - CASSANDRA_DC=PropertyDataCenter
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_LISTENER_INTERFACES=eth0
+      - CASSANDRA_LISTEN_ADDRESS=localhost
+      - CASSANDRA_BROADCAST_ADDRESS=127.0.0.1
+    ports:
+      - "9042:9042" # Porta padrão do Cassandra
+      - "7000:7000" # Porta de comunicação entre nós
+      - "7001:7001" # Porta SSL para comunicação entre nós
+      - "7199:7199" # Porta JMX
+      - "9142:9142" # Porta nativa SSL
+    volumes:
+      - cassandra-data:/var/lib/cassandra
+    networks:
+      - app_network
+    restart: always
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379" # Porta padrão do Redis
+    volumes:
+      - redis-data:/data
+    networks:
+      - app_network
+    restart: always
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: data_collect
+    ports:
+      - "5432:5432" # Porta padrão do PostgreSQL
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app_network
+    restart: always
+
+volumes:
+  cassandra-data:
+    driver: local
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+
+networks:
+  app_network:
+    driver: bridge
